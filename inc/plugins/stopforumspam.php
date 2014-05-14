@@ -11,9 +11,9 @@ function stopforumspam_info()
 		'name'			=> 'Stop Forum Spam',
 		'description'	=> 'Prevents users who are listed at http://www.stopforumspam.com from registering.',
 		'website'		=> 'https://github.com/tommm/stopforumspam',
-		'author'		=> "<a href='https://github.com/Tim-B'>Tim B.</a> and <a href='https://github.com/tommm/'>Tomm</a>",
+		'author'		=> "<a href='https://github.com/Tim-B'>Tim B.</a> and <a href='https://github.com/tommm/'>Tomm</a> and <a href='https://github.com/PapaPingouin/'>PapaPingouin</a>",
 		'authorsite'	=> '',
-		'version'		=> '1.4.1',
+		'version'		=> '1.4.2',
 		'guid'			=> 'cd4d9e2f4a6975562887ee6edffb984e',
 		'compatibility' => '1*'
 	);
@@ -34,6 +34,9 @@ function stopforumspam()
 	$lang->load('stopforumspam');
 	$details = array('username' => $mybb->input['username'], 'email' => $mybb->input['email'], 'ip' => $session->ipaddress, 'f' => 'json');
 
+	if( strpos( $details['ip'] ,':' ) !== false ) // ipv6 are invalid on SFS
+		unset($details['ip']); // delete ip from request (to not generate error from SFS)
+	
 	$context = stream_context_create(array(
 		'http' => array(
 			'method' => 'GET'
@@ -89,7 +92,7 @@ function stopforumspam()
 		error($lang->spam_error);
 	}
 
-	function sp_spamerror()
+	function sp_logsfs( $confidence, $blocked)
 	{
 		global $details, $lang, $mybb;
 
@@ -99,11 +102,13 @@ function stopforumspam()
 			$logstring .= ' / Username: '.htmlspecialchars_uni($details['username']);
 			$logstring .= ' / Email: '.htmlspecialchars_uni($details['email']);
 			$logstring .= ' / IP: '.htmlspecialchars_uni($details['ip']);
-
+			$logstring .= ' / confidence: '.$confidence; 
+			$logstring .= ' => '.($blocked ? 'BLOCKED' : 'OK' );
+			
 			sp_log($logstring);
 		}
 
-		error($lang->spam_blocked);
+		
 	}
 
 	$confidence = 0;
@@ -124,9 +129,12 @@ function stopforumspam()
 		$confidence += $data->ip->confidence;
 	}
 
-	if($confidence > $mybb->settings['sp_confidence'])
+	$blocked = $confidence > $mybb->settings['sp_confidence'];
+	sp_logsfs( $confidence, $blocked ); // log all (pass and blocked)
+	
+	if( $blocked )
 	{
-		sp_spamerror();
+		error($lang->spam_blocked);
 	}
 }
 ?>
