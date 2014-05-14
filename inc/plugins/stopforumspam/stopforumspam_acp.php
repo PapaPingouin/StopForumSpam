@@ -116,8 +116,8 @@ function stopforumspam_install()
 			'disporder' => 2
 		),
 		'sp_log' => array(
-			'title' => 'Log Denials?',
-			'description' => 'Log users that are denied registrations in a log file?',
+			'title' => 'Log SFS ?',
+			'description' => 'Log users requests registrations in a log file?',
 			'optionscode' => 'yesno',
 			'value' => 1,
 			'disporder' => 3
