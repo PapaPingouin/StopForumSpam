@@ -34,7 +34,7 @@ function stopforumspam()
 	$lang->load('stopforumspam');
 	$details = array('username' => $mybb->input['username'], 'email' => $mybb->input['email'], 'ip' => $session->ipaddress, 'f' => 'json');
 
-	if( strpos( $details['ip'] ,':' ) !== false ) // ipv6 are invalid on SFS
+	if( $mybb->settings['sp_noipv6'] && strpos( $details['ip'] ,':' ) !== false ) // ipv6 are invalid on SFS
 		unset($details['ip']); // delete ip from request (to not generate error from SFS)
 	
 	$context = stream_context_create(array(
@@ -96,17 +96,14 @@ function stopforumspam()
 	{
 		global $details, $lang, $mybb;
 
-		if($mybb->settings['sp_log'])
-		{
-			$logstring = "Time: ".date(DATE_RSS, time());
-			$logstring .= ' / Username: '.htmlspecialchars_uni($details['username']);
-			$logstring .= ' / Email: '.htmlspecialchars_uni($details['email']);
-			$logstring .= ' / IP: '.htmlspecialchars_uni($details['ip']);
-			$logstring .= ' / confidence: '.$confidence; 
-			$logstring .= ' => '.($blocked ? 'BLOCKED' : 'OK' );
-			
-			sp_log($logstring);
-		}
+		$logstring = "Time: ".date(DATE_RSS, time());
+		$logstring .= ' / Username: '.htmlspecialchars_uni($details['username']);
+		$logstring .= ' / Email: '.htmlspecialchars_uni($details['email']);
+		$logstring .= ' / IP: '.htmlspecialchars_uni($details['ip']);
+		$logstring .= ' / confidence: '.$confidence;
+		$logstring .= ' => '.($blocked ? 'BLOCKED' : 'OK' );
+		
+		sp_log($logstring);
 
 		
 	}
@@ -130,11 +127,17 @@ function stopforumspam()
 	}
 
 	$blocked = $confidence > $mybb->settings['sp_confidence'];
-	sp_logsfs( $confidence, $blocked ); // log all (pass and blocked)
-	
+		
 	if( $blocked )
 	{
+		if( $mybb->settings['sp_log'] ) // log error requests
+			sp_logsfs( $confidence, $blocked ); 
 		error($lang->spam_blocked);
+	}
+	else
+	{
+		if( $mybb->settings['sp_log_pass'] ) // log passed requests
+			sp_logsfs( $confidence, $blocked );
 	}
 }
 ?>
