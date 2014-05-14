@@ -108,26 +108,40 @@ function stopforumspam_install()
 			'value' => '0,0,0',
 			'disporder' => 1
 		),
+		'sp_noipv6' => array(
+			'title' => 'Ignore IP v6 ?',
+			'description' => 'IPv6 may cause invalid requests on SFS. Set Yes to ignore IPv6 on the requests to SFS (username and email are checked)',
+			'optionscode' => 'yesno',
+			'value' => 1,
+			'disporder' => 2
+		),
 		'sp_confidence' => array(
 			'title' => 'Confidence Level',
 			'description' => 'Select the minimum confidence level for checking spammers (the higher the level the more likely the user is a spammer). A user that generates a level higher than this will be denied registration.<br />Example: A user who has been mistakenly added to the spam database might generate a 0-20% level. A hardened spammer will be upwards of 40-50% and more.',
 			'optionscode' => "select\n0=0%\n10=10%\n20=20%\n30=30%\n40=40%\n50=50%\n60=60%\n70=70%\n80=80%\n90=90%\n100=100%",
 			'value' => 40,
-			'disporder' => 2
+			'disporder' => 3
 		),
 		'sp_log' => array(
-			'title' => 'Log SFS ?',
-			'description' => 'Log users requests registrations in a log file?',
+			'title' => 'Log SFS denials ?',
+			'description' => 'Log denials users requests registrations in a log file?',
 			'optionscode' => 'yesno',
 			'value' => 1,
-			'disporder' => 3
+			'disporder' => 4
+		),
+		'sp_log_pass' => array(
+			'title' => 'Log SFS pass ?',
+			'description' => 'Log pass users requests registrations in a log file?',
+			'optionscode' => 'yesno',
+			'value' => 1,
+			'disporder' => 5
 		),
 		'sp_fail' => array(
 			'title' => 'Failsafe',
 			'description' => 'If there is an error loading SFS, should users be allowed to register?',
 			'optionscode' => 'yesno',
 			'value' => 1,
-			'disporder' => 4
+			'disporder' => 6
 		)
 	);
 
@@ -146,7 +160,7 @@ function stopforumspam_uninstall()
 {
 	global $db, $mybb, $lang;
 
-	$db->delete_query('settings', "name IN ('sp_check','sp_confidence','sp_log','sp_fail')");
+	$db->delete_query('settings', "name IN ('sp_check','sp_confidence','sp_log','sp_fail','sp_log_pass','sp_noipv6')");
 	$db->delete_query('settinggroups', "name = 'stopforumspam'");
 
 	rebuild_settings();
@@ -214,3 +228,4 @@ function stopforumspam_1400()
 	rebuild_settings();
 }
 ?>
+
